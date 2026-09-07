@@ -56,8 +56,9 @@ def load_daily_records(wb):
                 "date": date,
                 "farm": row[1],
                 "tray_count": row[2] or 0,
-                "maintenance_cost": row[6] or 0,
-                "hipass": row[7] or 0,
+                "expense_category": row[5],
+                "expense_cost": row[7] or 0,
+                "hipass": row[8] or 0,
             }
         )
     return records
@@ -69,11 +70,13 @@ def summarize(records, params, year, month):
     total_trays = sum(r["tray_count"] for r in month_records)
     revenue = total_trays * params["unit_price"]
     vat = round(revenue * 0.1)
-    maintenance = sum(r["maintenance_cost"] for r in month_records)
+    fuel_cost = sum(r["expense_cost"] for r in month_records if r["expense_category"] == "유류비")
+    repair_cost = sum(r["expense_cost"] for r in month_records if r["expense_category"] == "정비비")
+    other_cost = sum(r["expense_cost"] for r in month_records if r["expense_category"] == "기타")
     hipass = params["hipass_fixed"]
     driver_salary = params["driver_salary"]
     insurance = params["insurance_annual"] if month == params["insurance_month"] else 0
-    total_expense = vat + maintenance + hipass + driver_salary + insurance
+    total_expense = vat + fuel_cost + repair_cost + other_cost + hipass + driver_salary + insurance
     net_profit = revenue - total_expense
     margin = (net_profit / revenue) if revenue else 0
 
@@ -81,7 +84,9 @@ def summarize(records, params, year, month):
         "total_trays": total_trays,
         "revenue": revenue,
         "vat": vat,
-        "maintenance": maintenance,
+        "fuel_cost": fuel_cost,
+        "repair_cost": repair_cost,
+        "other_cost": other_cost,
         "hipass": hipass,
         "driver_salary": driver_salary,
         "insurance": insurance,
@@ -101,7 +106,9 @@ def build_message(year, month, s):
         f"총 판수: {s['total_trays']:,}판",
         f"매출액: {won(s['revenue'])}",
         f"부가세(10%): {won(s['vat'])}",
-        f"차량유지비: {won(s['maintenance'])}",
+        f"유류비: {won(s['fuel_cost'])}",
+        f"정비비: {won(s['repair_cost'])}",
+        f"기타비용: {won(s['other_cost'])}",
         f"하이패스: {won(s['hipass'])}",
         f"기사월급: {won(s['driver_salary'])}",
         f"차량보험: {won(s['insurance'])}",
