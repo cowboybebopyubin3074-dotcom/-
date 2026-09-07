@@ -1,0 +1,11 @@
+{
+  "name": "daehan-automation",
+  "version": "0.1.0",
+  "private": true,
+  "description": "대한(주) 영업/전략기획 업무 자동화 시스템",
+  "main": "src/automation/index.js",
+  "scripts": {
+    "start": "node src/automation/index.js"
+  },
+  "license": "UNLICENSED"
+}
